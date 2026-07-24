@@ -55,9 +55,33 @@
     <main class="main-content">
         <!-- Topbar -->
         <header class="topbar">
-            <div class="topbar-left">
-                <h1 id="topbar-title">Início / Ambientes</h1>
-                <span id="topbar-env" class="env-name">Sem ambiente selecionado</span>
+            <div class="topbar-left" style="display:flex; align-items:center; gap:1.25rem; flex-wrap:wrap;">
+                <div>
+                    <h1 id="topbar-title">Início / Ambientes</h1>
+                    <span id="topbar-env" class="env-name">Sem ambiente selecionado</span>
+                </div>
+                
+                <!-- Stepper de Jornada Guiada 6 Passos -->
+                <nav class="journey-stepper" id="journey-stepper">
+                    <span class="step-pill nav-item" data-view="trello" title="1. Importar ou sincronizar o quadro">
+                        <span class="step-num">01</span> Conectar
+                    </span>
+                    <span class="step-pill nav-item" data-view="modeler" title="2. Catálogo de Dados e Agrupamentos">
+                        <span class="step-num">02</span> Organizar
+                    </span>
+                    <span class="step-pill nav-item" data-view="kpi" title="3. Criar Indicadores e Métricas em Linguagem Natural">
+                        <span class="step-num">03</span> Medir
+                    </span>
+                    <span class="step-pill nav-item" data-view="dashboard" title="4. Montar visuais e páginas">
+                        <span class="step-num">04</span> Construir
+                    </span>
+                    <span class="step-pill nav-item" data-view="modeler" data-tab="dictionary" title="5. Revisar cobertura e saúde dos números">
+                        <span class="step-num">05</span> Validar
+                    </span>
+                    <span class="step-pill nav-item" data-view="config" title="6. Apresentar em reunião ou exportar PDF">
+                        <span class="step-num">06</span> Apresentar
+                    </span>
+                </nav>
             </div>
             <div class="topbar-right">
                 <button id="btn-sync" class="btn btn-outline" disabled>🔄 Sincronizar Trello</button>
@@ -65,6 +89,7 @@
                 <button id="btn-theme-toggle" class="btn btn-icon" title="Alternar Tema Claro/Escuro">🌙</button>
             </div>
         </header>
+
 
         <!-- View Container -->
         <div class="view-container" id="view-container">
@@ -312,10 +337,12 @@
                             <h2>Dashboard Builder</h2>
                             <p>Painel de controle visual com suporte a Drill-Down (clique nos gráficos para ver as tarefas detalhadas).</p>
                         </div>
-                        <div style="display:flex; gap:0.5rem;">
-                            <button class="btn btn-secondary" id="btn-auto-dash">🚀 Gerar Dashboard Automático</button>
-                            <button class="btn btn-primary" id="btn-open-widget-modal">+ Adicionar Widget</button>
+                        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                            <button class="btn btn-primary" id="btn-open-wizard">🧙 Assistente Guiado (Wizard)</button>
+                            <button class="btn btn-secondary" id="btn-auto-dash">🚀 Gerar Executivo</button>
+                            <button class="btn btn-outline" id="btn-open-widget-modal">+ Adicionar Widget</button>
                         </div>
+
                     </div>
                 </div>
 

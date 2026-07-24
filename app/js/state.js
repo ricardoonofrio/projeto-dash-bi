@@ -54,34 +54,43 @@ const State = {
         }
     },
 
-    navigate: function(viewId) {
+    navigate: function(viewId, targetTab = null) {
         if (!this.currentEnv && viewId !== 'home') {
             Utils.showToast('Selecione ou crie um ambiente primeiro.', 'warning');
             return;
         }
 
         document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-        const navItem = document.querySelector(`.nav-item[data-view="${viewId}"]`);
-        if (navItem) navItem.classList.add('active');
+        document.querySelectorAll('.step-pill').forEach(pill => pill.classList.remove('active'));
+
+        const navItems = document.querySelectorAll(`.nav-item[data-view="${viewId}"]`);
+        navItems.forEach(i => i.classList.add('active'));
 
         document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
         const viewEl = document.getElementById(`view-${viewId}`);
         if (viewEl) viewEl.classList.add('active');
 
-        // Atualiza títulos do Topbar
+        // Se uma aba alvo for fornecida (ex: Dicionário & Saúde no passo 05. Validar)
+        if (targetTab && viewId === 'modeler') {
+            const tabBtn = document.querySelector(`.modeler-tab[data-tab="${targetTab}"]`);
+            if (tabBtn) tabBtn.click();
+        }
+
+        // Atualiza títulos do Topbar com linguagem gerencial
         const titlesMap = {
             home: 'Início / Ambientes',
-            trello: 'Conexão Trello',
-            modeler: 'Modelagem de Dados',
-            kpi: 'Criar KPIs',
-            dashboard: 'Dashboard Builder',
-            config: 'Exportação e Backup'
+            trello: '01. Conexão & Sincronização Trello',
+            modeler: '02. Catálogo de Dados & Modelagem Semântica',
+            kpi: '03. Editor de Métricas em Linguagem Natural',
+            dashboard: '04. Studio de Dashboards (Canvas & Visuais)',
+            config: '06. Apresentação & Exportação Executiva'
         };
         const titleEl = document.getElementById('topbar-title');
-        if (titleEl) titleEl.innerText = titlesMap[viewId] || 'DashBuilder';
+        if (titleEl) titleEl.innerText = titlesMap[viewId] || 'DashBuilder PRO';
 
         document.dispatchEvent(new CustomEvent(`view:${viewId}:loaded`));
     },
+
 
     loadEnvironment: async function(id) {
         const env = await StorageService.getEnvironment(id);

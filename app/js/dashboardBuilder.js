@@ -24,7 +24,15 @@ const DashboardBuilder = {
             btnAutoDash.parentNode.replaceChild(newAutoBtn, btnAutoDash);
             newAutoBtn.addEventListener('click', () => this.generateAutoDashboard());
         }
+
+        const btnWizard = document.getElementById('btn-open-wizard');
+        if (btnWizard) {
+            const newWizBtn = btnWizard.cloneNode(true);
+            btnWizard.parentNode.replaceChild(newWizBtn, btnWizard);
+            newWizBtn.addEventListener('click', () => this.openWizardModal());
+        }
     },
+
 
     generateAutoDashboard: async function() {
         if (!State.currentEnv || !State.currentTrelloData) {
@@ -77,6 +85,101 @@ const DashboardBuilder = {
         Utils.showToast("🚀 Dashboard Executivo gerado com sucesso!", "success");
         this.renderDashboard();
     },
+
+    openWizardModal: function() {
+        if (!State.currentEnv || !State.currentTrelloData) {
+            Utils.showToast("Conecte ao Trello e sincronize os dados primeiro.", "error");
+            return;
+        }
+
+        const wizardHtml = `
+            <div style="display:flex; flex-direction:column; gap:1rem;">
+                <div>
+                    <label style="font-size:0.85rem; font-weight:700; color:var(--text-main);">1. Qual é o objetivo principal desta dashboard?</label>
+                    <select id="w-goal" style="width:100%; margin-top:0.35rem; padding:0.5rem;">
+                        <option value="executiva">Visão Executiva (KPIs gerais, tendência e ranking)</option>
+                        <option value="sla">Gestão de SLA e Prazos (Atrasados vs No Prazo)</option>
+                        <option value="produtividade">Produtividade da Equipe (Entradas vs Entregas por Membro)</option>
+                        <option value="portfolio">Portfólio de Demandas (Criticidade e Tipos)</option>
+                        <option value="operacional">Acompanhamento Operacional (Fila do Dia e Prazos)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label style="font-size:0.85rem; font-weight:700; color:var(--text-main);">2. Como você deseja comparar os resultados?</label>
+                    <select id="w-compare" style="width:100%; margin-top:0.35rem; padding:0.5rem;">
+                        <option value="status">Por Status Gerencial / Colunas do Quadro</option>
+                        <option value="membro">Por Membro Responsável da Equipe</option>
+                        <option value="etiqueta">Por Etiquetas de Prioridade / Setor</option>
+                        <option value="tempo">Por Mês / Evolução Temporal</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label style="font-size:0.85rem; font-weight:700; color:var(--text-main);">3. Quem utilizará esta análise?</label>
+                    <select id="w-target" style="width:100%; margin-top:0.35rem; padding:0.5rem;">
+                        <option value="diretoria">Diretoria / Apresentação Executiva (Visual limpo, alto nível)</option>
+                        <option value="gestao">Gestão de Equipe (Métricas de acompanhamento e gargalos)</option>
+                        <option value="operacao">Operacional / Equipe (Fila de cartões e tabelas)</option>
+                    </select>
+                </div>
+            </div>
+        `;
+
+        Utils.showModal({
+            title: "🧙 Assistente de Criação de Dashboard (Modo Guiado)",
+            content: wizardHtml,
+            buttons: [
+                { text: "Cancelar", class: "btn-outline" },
+                {
+                    text: "🚀 Montar Dashboard Inteligente",
+                    class: "btn-primary",
+                    onClick: async () => {
+                        const goal = document.getElementById('w-goal').value;
+                        const compare = document.getElementById('w-compare').value;
+
+                        let compareGroupBy = "Lista Original";
+                        if (compare === 'membro') compareGroupBy = "Membro Responsável";
+                        if (compare === 'etiqueta') compareGroupBy = "Etiqueta Original";
+                        if (compare === 'tempo') compareGroupBy = "Mês de Criação";
+
+                        let widgets = [];
+
+                        if (goal === 'sla') {
+                            widgets = [
+                                { id: Utils.generateId(), title: "Total de Demandas", kpiId: "", groupBy: "Status de SLA", operation: "count", type: "card" },
+                                { id: Utils.generateId(), title: "Status de SLA (No Prazo vs Atrasado)", kpiId: "", groupBy: "Status de SLA", operation: "count", type: "doughnut" },
+                                { id: Utils.generateId(), title: "Lead Time Médio por Responsável", kpiId: "", groupBy: "Membro Responsável", operation: "avg", targetField: "Lead Time (Dias)", type: "column" },
+                                { id: Utils.generateId(), title: "Detalhamento de Cartões Críticos", kpiId: "", groupBy: compareGroupBy, operation: "count", type: "table" }
+                            ];
+                        } else if (goal === 'produtividade') {
+                            widgets = [
+                                { id: Utils.generateId(), title: "Cartões Criados", kpiId: "", groupBy: "Membro Responsável", operation: "count", type: "card" },
+                                { id: Utils.generateId(), title: "Entregas por Membro da Equipe", kpiId: "", groupBy: "Membro Responsável", operation: "count", type: "column" },
+                                { id: Utils.generateId(), title: "Evolução Temporal de Criação", kpiId: "", groupBy: "Mês de Criação", operation: "count", type: "line" },
+                                { id: Utils.generateId(), title: "Tabela de Produtividade Detalhada", kpiId: "", groupBy: "Membro Responsável", operation: "count", type: "table" }
+                            ];
+                        } else {
+                            widgets = [
+                                { id: Utils.generateId(), title: "Total de Cartões no Quadro", kpiId: "", groupBy: compareGroupBy, operation: "count", type: "card" },
+                                { id: Utils.generateId(), title: "Distribuição da Demanda", kpiId: "", groupBy: compareGroupBy, operation: "count", type: "doughnut" },
+                                { id: Utils.generateId(), title: "Volume por Responsável", kpiId: "", groupBy: "Membro Responsável", operation: "count", type: "column" },
+                                { id: Utils.generateId(), title: "Tendência Mensal", kpiId: "", groupBy: "Mês de Criação", operation: "count", type: "line" }
+                            ];
+                        }
+
+                        if (!State.currentEnv.dashboards) State.currentEnv.dashboards = [{ id: 'default', name: 'Principal', widgets: [] }];
+                        State.currentEnv.dashboards[0].widgets = widgets;
+
+                        await StorageService.saveEnvironment(State.currentEnv);
+                        Utils.showToast("🧙 Dashboard gerada com sucesso pelo Assistente!", "success");
+                        this.renderDashboard();
+                    }
+                }
+            ]
+        });
+    },
+
 
 
     initGlobalFilters: function() {

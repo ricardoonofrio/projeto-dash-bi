@@ -245,15 +245,17 @@ const KPIEngine = {
             li.style.display = 'flex';
             li.style.justifyContent = 'space-between';
             li.style.alignItems = 'center';
+            const naturalSentence = this.generateNaturalLanguageSentence(kpi);
             li.innerHTML = `
                 <div>
-                    <strong style="font-size: 0.9rem">${kpi.name}</strong>
-                    <div style="font-size:0.75rem; color:var(--text-muted);">${(kpi.operation || 'count').toUpperCase()} - ${kpi.filters?.length || 0} filtro(s)</div>
+                    <strong style="font-size: 0.9rem; color:var(--text-main);">${kpi.name}</strong>
+                    <div style="font-size:0.75rem; color:var(--primary); margin-top:0.2rem; font-style:italic;">💬 "${naturalSentence}"</div>
                 </div>
                 <button class="btn btn-icon btn-del-kpi" data-id="${kpi.id}" style="color: var(--danger); font-size: 1rem; padding:0">&times;</button>
             `;
             listEl.appendChild(li);
         });
+
 
         document.querySelectorAll('.btn-del-kpi').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -337,12 +339,44 @@ const KPIEngine = {
         row.querySelector('.btn-del-filter').addEventListener('click', () => row.remove());
     },
 
+    generateNaturalLanguageSentence: function(kpi) {
+        if (!kpi) return "Métrica não configurada.";
+
+        const opsMap = {
+            count: "Contar a quantidade de cartões",
+            sum: "Calcular a soma dos valores",
+            avg: "Calcular a média dos valores",
+            min: "Identificar o valor mínimo",
+            max: "Identificar o valor máximo"
+        };
+
+        let sentence = opsMap[kpi.operation] || "Calcular indicador";
+
+        if (kpi.filters && kpi.filters.length > 0) {
+            const filterStrings = kpi.filters.map(f => {
+                const opNames = {
+                    equals: "seja igual a",
+                    not_equals: "seja diferente de",
+                    contains: "contenha o texto",
+                    greater_than: "seja maior que",
+                    less_than: "seja menor que"
+                };
+                return `onde "${f.groupName}" ${opNames[f.operator] || f.operator} "${f.value}"`;
+            });
+            sentence += " " + filterStrings.join(" E ");
+        } else {
+            sentence += " para todos os cartões do quadro.";
+        }
+
+        return sentence;
+    },
+
     saveKPI: async function() {
         const name = document.getElementById('kpi-name').value.trim();
         const operation = document.getElementById('kpi-operation').value;
 
         if (!name) {
-            Utils.showToast("Dê um nome ao KPI", "error");
+            Utils.showToast("Dê um nome ao indicador", "error");
             return;
         }
 
@@ -366,7 +400,7 @@ const KPIEngine = {
         State.currentEnv.kpis.push(newKpi);
 
         await StorageService.saveEnvironment(State.currentEnv);
-        Utils.showToast("KPI salvo com sucesso!", "success");
+        Utils.showToast("Métrica de Negócio salva com sucesso!", "success");
         
         this.closeEditor();
         this.renderKPIList();
@@ -376,3 +410,4 @@ const KPIEngine = {
 document.addEventListener('view:kpi:loaded', () => {
     KPIEngine.initView();
 });
+

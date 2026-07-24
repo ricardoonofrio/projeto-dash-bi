@@ -61,6 +61,53 @@ body {
     transform: translateY(-1px);
 }
 
+/* Stepper de Jornada Guiada em 6 Passos (Premium 10/10) */
+.journey-stepper {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: var(--bg-main);
+    padding: 0.35rem 0.6rem;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border-color);
+}
+
+.step-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--radius-full);
+    font-size: 0.775rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: all 0.15s ease;
+    cursor: pointer;
+}
+
+.step-pill:hover {
+    color: var(--text-main);
+    background: var(--secondary-hover);
+}
+
+.step-pill.active {
+    background: var(--navy-950);
+    color: var(--white);
+    box-shadow: 0 2px 6px rgba(11, 18, 32, 0.2);
+}
+
+.theme-dark .step-pill.active {
+    background: var(--gold-500);
+    color: var(--navy-950);
+}
+
+.step-num {
+    font-size: 0.675rem;
+    font-weight: 700;
+    opacity: 0.85;
+}
+
 .btn-secondary {
     background-color: var(--secondary);
     color: var(--secondary-text);
