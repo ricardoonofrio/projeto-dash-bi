@@ -458,11 +458,17 @@ const DashboardBuilder = {
         const kpis = State.currentEnv.kpis || [];
         const groups = KPIEngine.getAvailableGroups();
 
+        // Extrai campos numéricos disponíveis (AN-02)
+        const numericFields = ["Lead Time (Dias)", "Tempo em Aberto (Dias)", "Itens de Checklist", "Itens de Checklist Concluídos"];
+        (State.currentTrelloData?.customFields || []).forEach(cf => {
+            if (cf.type === 'number') numericFields.push(`Campo: ${cf.name}`);
+        });
+
         const formContent = `
             <div style="display:flex; flex-direction:column; gap:0.75rem;">
                 <div>
                     <label style="font-size:0.8rem; font-weight:600;">Título do Widget</label>
-                    <input type="text" id="w-title" style="width:100%; margin-top:0.25rem;" placeholder="Ex: Tarefas por Status">
+                    <input type="text" id="w-title" style="width:100%; margin-top:0.25rem;" placeholder="Ex: Lead Time Médio por Setor">
                 </div>
                 <div>
                     <label style="font-size:0.8rem; font-weight:600;">Filtro / KPI Base</label>
@@ -487,10 +493,17 @@ const DashboardBuilder = {
                         <option value="max">Valor Máximo (MAX)</option>
                     </select>
                 </div>
+                <div id="target-field-container" style="display:none; background:var(--primary-light); padding:0.75rem; border-radius:var(--radius-sm); border:1px solid var(--border-color);">
+                    <label style="font-size:0.8rem; font-weight:700; color:var(--primary-text);">Campo Numérico Alvo (Obrigatório para Soma/Média/Min/Max)</label>
+                    <select id="w-target-field" style="width:100%; margin-top:0.25rem;">
+                        <option value="">Selecione o campo numérico...</option>
+                        ${numericFields.map(f => `<option value="${f}">${f}</option>`).join('')}
+                    </select>
+                </div>
                 <div>
                     <label style="font-size:0.8rem; font-weight:600;">Tipo de Visualização</label>
                     <select id="w-type" style="width:100%; margin-top:0.25rem;">
-                        <option value="pie">Gráfico de Pizza</option>
+                        <option value="card">Card Numérico Executivo (Big Number)</option>
                         <option value="doughnut">Gráfico de Rosca</option>
                         <option value="bar">Barras Horizontais</option>
                         <option value="column">Colunas Verticais</option>
@@ -498,13 +511,12 @@ const DashboardBuilder = {
                         <option value="area">Gráfico de Área</option>
                         <option value="funnel">Gráfico de Funil</option>
                         <option value="table">Tabela Dinâmica</option>
-                        <option value="card">Card numérico (Big Number)</option>
                     </select>
                 </div>
             </div>
         `;
 
-        Utils.showModal({
+        const modalRef = Utils.showModal({
             title: "Adicionar Widget ao Dashboard",
             content: formContent,
             buttons: [
@@ -517,24 +529,45 @@ const DashboardBuilder = {
                         const kpiId = document.getElementById('w-kpi').value;
                         const groupBy = document.getElementById('w-group').value;
                         const operation = document.getElementById('w-op').value;
+                        const targetField = document.getElementById('w-target-field').value;
                         const type = document.getElementById('w-type').value;
+
+                        // AN-02: Bloqueia soma, média, min e max sem campo numérico alvo
+                        if (['sum', 'avg', 'min', 'max'].includes(operation) && !targetField) {
+                            Utils.showToast("Selecione obrigatoriamente um campo numérico para " + operation.toUpperCase(), "error");
+                            return false;
+                        }
 
                         if (!State.currentEnv.dashboards) State.currentEnv.dashboards = [{ id: 'default', name: 'Principal', widgets: [] }];
                         if (!State.currentEnv.dashboards[0]) State.currentEnv.dashboards[0] = { id: 'default', name: 'Principal', widgets: [] };
 
                         State.currentEnv.dashboards[0].widgets.push({
                             id: Utils.generateId(),
-                            title, kpiId, groupBy, operation, type
+                            title, kpiId, groupBy, operation, targetField, type
                         });
 
                         await StorageService.saveEnvironment(State.currentEnv);
-                        Utils.showToast("Widget adicionado!", "success");
+                        Utils.showToast("Widget adicionado com sucesso!", "success");
                         this.renderDashboard();
                     }
                 }
             ]
         });
+
+        // Toggle visibilidade do campo-alvo
+        const box = modalRef.box;
+        const opSelect = box.querySelector('#w-op');
+        const tfContainer = box.querySelector('#target-field-container');
+
+        opSelect.addEventListener('change', (e) => {
+            if (['sum', 'avg', 'min', 'max'].includes(e.target.value)) {
+                tfContainer.style.display = 'block';
+            } else {
+                tfContainer.style.display = 'none';
+            }
+        });
     }
+
 };
 
 document.addEventListener('view:dashboard:loaded', () => {

@@ -31,22 +31,22 @@
         </div>
         <nav class="sidebar-nav">
             <a href="#" class="nav-item active" data-view="home">
-                <span>📁</span> <span>Início / Ambientes</span>
+                <span>Início / Ambientes</span>
             </a>
             <a href="#" class="nav-item" data-view="trello">
-                <span>🔌</span> <span>Conexão Trello</span>
+                <span>Conexão Trello</span>
             </a>
             <a href="#" class="nav-item" data-view="modeler">
-                <span>🧩</span> <span>Modelagem de Dados</span>
+                <span>Modelagem de Dados</span>
             </a>
             <a href="#" class="nav-item" data-view="kpi">
-                <span>🎯</span> <span>Criar KPIs</span>
+                <span>Criar KPIs</span>
             </a>
             <a href="#" class="nav-item" data-view="dashboard">
-                <span>📊</span> <span>Dashboard Builder</span>
+                <span>Dashboard Studio</span>
             </a>
             <a href="#" class="nav-item" data-view="config">
-                <span>⚙️</span> <span>Exportar & Backup</span>
+                <span>Exportar & Backup</span>
             </a>
         </nav>
     </aside>
@@ -84,12 +84,11 @@
                 </nav>
             </div>
             <div class="topbar-right">
-                <button id="btn-sync" class="btn btn-outline" disabled>🔄 Sincronizar Trello</button>
-                <button id="btn-presentation" class="btn btn-outline" disabled>📺 Apresentação</button>
-                <button id="btn-theme-toggle" class="btn btn-icon" title="Alternar Tema Claro/Escuro">🌙</button>
+                <button id="btn-sync" class="btn btn-outline" disabled>Sincronizar Trello</button>
+                <button id="btn-presentation" class="btn btn-outline" disabled>Apresentação</button>
+                <button id="btn-theme-toggle" class="btn btn-icon" title="Alternar Tema Claro/Escuro">Tema</button>
             </div>
         </header>
-
 
         <!-- View Container -->
         <div class="view-container" id="view-container">
@@ -101,7 +100,7 @@
                     <p>Selecione um ambiente existente ou crie um novo para importar e modelar dados do Trello localmente.</p>
                     <div class="mt-2" style="display:flex; gap:0.5rem">
                         <button class="btn btn-primary" id="btn-new-env">+ Criar Novo Ambiente</button>
-                        <button class="btn btn-secondary" id="btn-import-env-json">📥 Importar JSON do Ambiente</button>
+                        <button class="btn btn-secondary" id="btn-import-env-json">Importar JSON do Ambiente</button>
                     </div>
                 </div>
                 <div class="env-list mt-3" id="env-list">
@@ -134,7 +133,7 @@
                         </div>
                         
                         <div class="actions mt-1">
-                            <button class="btn btn-primary" id="btn-trello-connect">🔄 Conectar e Sincronizar via API</button>
+                            <button class="btn btn-primary" id="btn-trello-connect">Conectar e Sincronizar via API</button>
                         </div>
                     </div>
 
@@ -167,7 +166,7 @@
                             <p>Inspecione os cartões reais do Trello, mapeie etiquetas e colunas e veja a transformação De-Para em tempo real.</p>
                         </div>
                         <div style="display:flex; gap:0.5rem;">
-                            <button class="btn btn-secondary" id="btn-auto-map">⚡ Mapeamento Automático Inteligente</button>
+                            <button class="btn btn-secondary" id="btn-auto-map">Mapeamento Automático</button>
                             <button class="btn btn-primary" id="btn-add-group">+ Novo Agrupamento</button>
                         </div>
                     </div>
@@ -176,13 +175,16 @@
                 <!-- Abas da Modelagem -->
                 <div style="display:flex; gap:0.5rem; border-bottom:1px solid var(--border-color); margin-bottom:1.25rem;">
                     <button class="btn btn-outline modeler-tab active" data-tab="depara" style="border-bottom-left-radius:0; border-bottom-right-radius:0; font-weight:600;">
-                        🔄 Mapeador & Live Preview (De-Para)
+                        Mapeador & Live Preview (De-Para)
                     </button>
                     <button class="btn btn-outline modeler-tab" data-tab="inspector" style="border-bottom-left-radius:0; border-bottom-right-radius:0; font-weight:600;">
-                        🔍 Inspector de Cartões (Dados Brutos)
+                        Inspector de Cartões (Dados Brutos)
                     </button>
                     <button class="btn btn-outline modeler-tab" data-tab="dictionary" style="border-bottom-left-radius:0; border-bottom-right-radius:0; font-weight:600;">
-                        📊 Dicionário & Saúde dos Dados
+                        Dicionário & Saúde dos Dados
+                    </button>
+                </div>
+ Saúde dos Dados
                     </button>
                 </div>
 
@@ -338,10 +340,11 @@
                             <p>Painel de controle visual com suporte a Drill-Down (clique nos gráficos para ver as tarefas detalhadas).</p>
                         </div>
                         <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-                            <button class="btn btn-primary" id="btn-open-wizard">🧙 Assistente Guiado (Wizard)</button>
-                            <button class="btn btn-secondary" id="btn-auto-dash">🚀 Gerar Executivo</button>
+                            <button class="btn btn-primary" id="btn-open-wizard">Assistente Guiado (Wizard)</button>
+                            <button class="btn btn-secondary" id="btn-auto-dash">Gerar Visão Executiva</button>
                             <button class="btn btn-outline" id="btn-open-widget-modal">+ Adicionar Widget</button>
                         </div>
+
 
                     </div>
                 </div>

@@ -49,30 +49,45 @@ const KPIEngine = {
             processedCard._groups["Data de Início"] = Utils.formatShortDate(card.start);
             processedCard._groups["Última Atividade"] = Utils.formatShortDate(card.dateLastActivity);
 
-            // Métricas de SLA e Lead Time
+            // Métricas de SLA e Lead Time (AN-06 & AN-07: 5 Estados Reais de SLA)
             let slaStatus = "Sem Prazo";
             let leadTimeDays = 0;
 
+            // Identifica se o cartão está concluído via lista/status modelado
+            const currentListLower = (listsMap[card.idList] || '').toLowerCase();
+            const isCompleted = card.dueComplete || 
+                                currentListLower.includes('done') || 
+                                currentListLower.includes('concl') || 
+                                currentListLower.includes('final') || 
+                                currentListLower.includes('entregue');
+
             if (card.due) {
                 const dueDate = new Date(card.due);
-                if (card.dueComplete) {
-                    slaStatus = "Concluído no Prazo";
-                } else if (dueDate < now) {
-                    slaStatus = "Atrasado";
+                if (isCompleted) {
+                    const completionDate = card.dateLastActivity ? new Date(card.dateLastActivity) : now;
+                    slaStatus = completionDate <= dueDate ? "Concluído no Prazo" : "Concluído com Atraso";
                 } else {
-                    slaStatus = "No Prazo";
+                    slaStatus = dueDate < now ? "Em Andamento Atrasado" : "Em Andamento no Prazo";
                 }
+            } else {
+                slaStatus = "Sem Prazo";
             }
             processedCard._groups["Status de SLA"] = slaStatus;
 
-            // Lead time (dias desde a criação até hoje ou até a última atividade)
+            // Lead Time (Somente para concluídos) vs Tempo em Aberto (AN-08 & AN-09)
             if (createdDate) {
-                const endDate = card.dueComplete && card.dateLastActivity ? new Date(card.dateLastActivity) : now;
+                const endDate = isCompleted && card.dateLastActivity ? new Date(card.dateLastActivity) : now;
                 const diffTime = Math.max(0, endDate - createdDate);
                 leadTimeDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
             }
-            processedCard._groups["Lead Time (Dias)"] = `${leadTimeDays} dias`;
-            processedCard._numericFields["Lead Time (Dias)"] = leadTimeDays;
+
+            if (isCompleted) {
+                processedCard._groups["Lead Time (Dias)"] = `${leadTimeDays} dias`;
+                processedCard._numericFields["Lead Time (Dias)"] = leadTimeDays;
+            } else {
+                processedCard._groups["Tempo em Aberto (Dias)"] = `${leadTimeDays} dias`;
+                processedCard._numericFields["Tempo em Aberto (Dias)"] = leadTimeDays;
+            }
 
             // Checklists Count
             let totalChecklistItems = 0;
@@ -93,12 +108,14 @@ const KPIEngine = {
                 if (cfDef) {
                     const groupName = `Campo: ${cfDef.name}`;
                     let val = "Vazio";
-                    let numVal = 0;
 
                     if (item.value) {
                         val = item.value.text || item.value.number || item.value.date || (item.value.checked ? "Sim" : "Não");
                         if (item.value.number !== undefined) {
-                            numVal = parseFloat(item.value.number) || 0;
+                            const parsedNum = parseFloat(item.value.number);
+                            if (!isNaN(parsedNum)) {
+                                processedCard._numericFields[groupName] = parsedNum;
+                            }
                         }
                     } else if (item.idValue && cfDef.options) {
                         const opt = cfDef.options.find(o => o.id === item.idValue);
@@ -106,9 +123,6 @@ const KPIEngine = {
                     }
 
                     processedCard._groups[groupName] = val;
-                    if (cfDef.type === 'number' || !isNaN(parseFloat(val))) {
-                        processedCard._numericFields[groupName] = numVal || parseFloat(val) || 0;
-                    }
                 }
             });
 
@@ -132,45 +146,54 @@ const KPIEngine = {
         });
     },
 
-    // Agrupamento com Suporte a Operações Numéricas (COUNT, SUM, AVG, MIN, MAX)
+    // Agrupamento com Tratamento Rigoroso de Valores Ausentes (AN-03)
     groupBy: function(processedCards, groupName, operation = 'count', targetNumericField = null) {
         const groupsMap = {};
 
         processedCards.forEach(card => {
             const key = card._groups[groupName] || "Desconhecido";
             if (!groupsMap[key]) {
-                groupsMap[key] = { count: 0, sum: 0, values: [] };
+                groupsMap[key] = { count: 0, validValues: [] };
             }
 
             groupsMap[key].count += 1;
 
             if (targetNumericField && card._numericFields[targetNumericField] !== undefined) {
-                const val = Number(card._numericFields[targetNumericField]) || 0;
-                groupsMap[key].sum += val;
-                groupsMap[key].values.push(val);
-            } else {
-                groupsMap[key].sum += 1;
-                groupsMap[key].values.push(1);
+                const val = Number(card._numericFields[targetNumericField]);
+                if (!isNaN(val)) {
+                    groupsMap[key].validValues.push(val);
+                }
             }
         });
 
         return Object.keys(groupsMap).map(key => {
             const item = groupsMap[key];
+            const validCount = item.validValues.length;
+            const sumVal = item.validValues.reduce((acc, v) => acc + v, 0);
+
             let finalValue = item.count;
 
             if (operation === 'sum') {
-                finalValue = Math.round(item.sum * 100) / 100;
+                finalValue = Math.round(sumVal * 100) / 100;
             } else if (operation === 'avg') {
-                finalValue = item.count > 0 ? Math.round((item.sum / item.count) * 100) / 100 : 0;
+                // AN-03: Média divide APENAS pela quantidade de valores VÁLIDOS, nunca pelo total bruto
+                finalValue = validCount > 0 ? Math.round((sumVal / validCount) * 100) / 100 : 0;
             } else if (operation === 'min') {
-                finalValue = item.values.length > 0 ? Math.min(...item.values) : 0;
+                finalValue = validCount > 0 ? Math.min(...item.validValues) : 0;
             } else if (operation === 'max') {
-                finalValue = item.values.length > 0 ? Math.max(...item.values) : 0;
+                finalValue = validCount > 0 ? Math.max(...item.validValues) : 0;
             }
 
-            return { name: key, value: finalValue, count: item.count };
+            return {
+                name: key,
+                value: finalValue,
+                count: item.count,
+                validCount: validCount,
+                ignoredCount: item.count - validCount
+            };
         });
     },
+
 
     // Filtros com Operadores Expandidos
     filterCards: function(processedCards, filters = []) {
