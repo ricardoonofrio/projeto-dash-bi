@@ -1,0 +1,380 @@
+﻿DOCUMENTO DE ESCOPO TÉCNICO
+Aplicação Web Local de BI Operacional Integrada ao Trello
+Dashboard Builder em HTML, CSS e JavaScript — funcionamento 100% local
+Observação importante: 
+o dashboard NAU já desenvolvido deve ser utilizado apenas como referência visual e funcional para um template inicial. A nova aplicação deverá ser genérica, local e configurável, permitindo que cada núcleo ou gerência conecte seu próprio quadro do Trello, modele os dados e crie seus próprios KPIs e gráficos.
+1. Visão geral do projeto
+O projeto consiste no desenvolvimento de uma aplicação web local, construída com HTML, CSS e JavaScript, para criação de dashboards operacionais conectados ao Trello. A aplicação deverá funcionar sem servidor próprio, sem backend e sem banco de dados online. O usuário abrirá a aplicação no navegador e realizará localmente a conexão com o Trello, a importação dos dados, a modelagem das etiquetas/listas/campos e a montagem dos painéis.
+A proposta é criar uma experiência parecida com um Power BI simplificado e direcionado ao Trello: o usuário não recebe apenas um dashboard pronto; ele consegue escolher quais informações deseja exibir, como agrupar os dados, quais filtros aplicar, qual tipo de gráfico utilizar e como organizar visualmente os quadros para apresentação.
+1.1. Premissas obrigatórias
+A aplicação deverá funcionar 100% localmente no navegador do usuário.
+O projeto deverá ser desenvolvido com HTML, CSS e JavaScript puro ou com bibliotecas front-end locais.
+Não haverá backend, servidor de aplicação ou banco de dados remoto na primeira versão.
+As configurações do usuário deverão ser salvas localmente no navegador, preferencialmente via LocalStorage e/ou IndexedDB.
+O acesso ao Trello será feito diretamente pelo navegador usando API Key, Token e Board ID informados pelo usuário.
+A aplicação deverá permitir importar um arquivo JSON exportado do Trello como alternativa ao uso da API.
+A estrutura do Trello não poderá ser fixa, pois cada núcleo ou gerência poderá usar listas, etiquetas e campos de forma diferente.
+2. Problema a ser resolvido
+Diferentes núcleos e gerências utilizam o Trello com estruturas próprias.
+As listas, etiquetas, nomes de status, prioridades e tipos de demanda variam de quadro para quadro.
+Um dashboard fixo exige manutenção manual sempre que outro setor desejar utilizar a solução.
+A gestão precisa de indicadores visuais, mas cada setor precisa ter liberdade para montar o painel conforme sua própria forma de apresentação.
+A solução deve evitar dependência de servidor, instalação complexa ou infraestrutura externa.
+3. Solução proposta
+Criar uma aplicação web local com três grandes camadas:
+Coleta de dados do Trello: via API ou importação de JSON local.
+Modelagem dos dados: associação manual de listas, etiquetas, membros e campos personalizados a conceitos de gestão.
+Construção visual de dashboards: criação de KPIs, gráficos, tabelas e relatórios visuais configuráveis pelo usuário.
+A aplicação não deverá interpretar automaticamente que determinada etiqueta significa prioridade, unidade, origem ou porte. Ela deverá mostrar ao usuário os dados encontrados no Trello e permitir que ele associe cada informação a grupos de análise. Exemplo: a etiqueta “Urgente” pode ser associada ao grupo “Prioridade”; a etiqueta “PSMECOL” pode ser associada ao grupo “Unidade Prisional”; a lista “Finalizado” pode ser associada ao status “Concluído”.
+4. Funcionamento geral da aplicação
+Etapa
+Ação
+Descrição
+1
+Abrir a aplicação localmente
+O usuário abre o arquivo index.html no navegador ou acessa a aplicação hospedada em ambiente interno estático.
+2
+Cadastrar um ambiente
+O usuário informa nome do núcleo/gerência, sigla, cores, título do painel e descrição.
+3
+Conectar ou importar dados do Trello
+O usuário informa API Key, Token e Board ID ou importa um arquivo JSON exportado do Trello.
+4
+Sincronizar dados
+A aplicação carrega listas, cartões, membros, etiquetas, prazos, checklists e campos personalizados disponíveis.
+5
+Modelar o quadro
+O usuário associa listas, etiquetas e campos a grupos de interpretação.
+6
+Criar indicadores
+O usuário cria KPIs com contagem, filtros, agrupamentos e fórmulas simples.
+7
+Montar dashboard
+O usuário escolhe cards, gráficos, tabelas, filtros e organiza os blocos na tela.
+8
+Salvar localmente
+O layout, as conexões e as associações são armazenados localmente no navegador.
+9
+Apresentar ou exportar
+O usuário pode usar modo apresentação, exportar PDF, CSV ou JSON de configuração.
+5. Módulos da aplicação
+5.1. Tela inicial / seleção de ambiente
+Criar novo ambiente local.
+Abrir ambiente salvo.
+Importar ambiente por arquivo JSON.
+Excluir ambiente local.
+Duplicar ambiente para criar novo painel a partir de um modelo existente.
+5.2. Cadastro do núcleo ou gerência
+Nome completo do núcleo/gerência.
+Sigla.
+Órgão ou setor superior.
+Descrição.
+Cores do tema.
+Logo opcional.
+Título padrão do dashboard.
+Responsável pelo painel.
+5.3. Conexão com Trello
+Campos para API Key, Token e Board ID.
+Botão para testar conexão.
+Botão para sincronizar dados.
+Opção de não salvar token.
+Opção de salvar token localmente, com aviso de segurança.
+Opção de importar JSON local do Trello.
+Histórico da última sincronização local.
+5.4. Leitura dos dados brutos
+Listas do quadro.
+Cartões ativos.
+Cartões arquivados, se o usuário optar por incluir.
+Membros.
+Etiquetas.
+Datas de vencimento.
+Status de conclusão.
+Data de criação do cartão, inferida pelo ID do Trello quando aplicável.
+Data da última atividade.
+Checklists.
+Campos personalizados, quando disponíveis.
+URL do cartão.
+5.5. Modelagem do quadro
+Criar grupos de interpretação: prioridade, unidade, origem, tipo de demanda, região, empresa, porte, complexidade etc.
+Associar etiquetas a grupos.
+Associar listas a status gerenciais.
+Associar campos personalizados a campos tratados.
+Definir pesos para prioridades.
+Definir quais listas indicam conclusão.
+Definir quais listas indicam arquivamento/encerramento.
+Definir filtros padrão do ambiente.
+5.6. Construtor de KPIs
+Criar indicador do tipo contagem.
+Criar indicador percentual.
+Criar indicador por fórmula simples.
+Aplicar filtros ao indicador.
+Escolher formato: número, percentual, data, texto ou moeda.
+Definir cor condicional.
+Salvar indicador para uso em vários gráficos.
+5.7. Construtor visual de dashboard
+Adicionar widget visual.
+Escolher tipo de visual.
+Selecionar fonte de dados.
+Selecionar KPI, medida ou campo.
+Selecionar dimensão de agrupamento.
+Aplicar filtros globais e filtros por widget.
+Editar título, subtítulo, cores, legenda e ordenação.
+Arrastar, redimensionar, duplicar e excluir widgets.
+Salvar múltiplas páginas de dashboard.
+5.8. Visualizações disponíveis
+Card KPI.
+Gráfico de barras horizontais.
+Gráfico de colunas.
+Gráfico de pizza.
+Gráfico de rosca.
+Gráfico de linha.
+Tabela detalhada.
+Ranking.
+Matriz simples.
+Painel de atrasos.
+Fluxo mensal.
+Lista de cartões filtrados.
+5.9. Exportações
+Exportar PDF do dashboard.
+Exportar CSV da tabela filtrada.
+Exportar JSON de configuração do ambiente.
+Importar JSON de configuração para outro computador.
+Exportar dados brutos sincronizados, se permitido.
+6. Modelagem dos dados do Trello
+A modelagem é a etapa mais importante do sistema. Como cada núcleo usa o Trello de forma diferente, a aplicação deverá permitir que o usuário crie um dicionário de dados próprio para cada quadro.
+6.1. Exemplos de associações
+Origem no Trello
+Associação no sistema
+Interpretação
+Etiqueta “Urgente”
+Grupo Prioridade
+Valor: Alta / Peso: 3
+Etiqueta “PSMECOL”
+Grupo Unidade Prisional
+Valor: PSMECOL
+Etiqueta “Contrato”
+Grupo Tipo de Demanda
+Valor: Contrato
+Lista “Finalizado”
+Grupo Status
+Valor: Concluído
+Lista “Aguardando terceiros”
+Grupo Status
+Valor: Pendente externo
+Campo personalizado “Valor”
+Campo tratado
+Valor estimado da demanda
+6.2. Regra fundamental
+O sistema não deve criar KPIs diretamente baseados no nome fixo da etiqueta ou da lista. 
+O KPI deve ser criado com base no grupo modelado pelo usuário. Exemplo correto: contar cartões cujo grupo “Prioridade” seja “Alta”. Exemplo incorreto: contar cartões com a etiqueta fixa “Prioridade Máxima”.
+7. Requisitos funcionais
+Código
+Requisito funcional
+RF01
+Permitir criação, edição e exclusão de ambientes locais.
+RF02
+Permitir cadastro de dados institucionais do núcleo/gerência.
+RF03
+Permitir inserir API Key, Token e Board ID do Trello.
+RF04
+Permitir testar conexão com o Trello.
+RF05
+Permitir sincronizar dados do quadro Trello diretamente pelo navegador.
+RF06
+Permitir importar arquivo JSON do Trello como alternativa à API.
+RF07
+Exibir listas, cartões, etiquetas, membros, prazos e campos encontrados.
+RF08
+Permitir criar grupos de dados personalizados.
+RF09
+Permitir associar etiquetas do Trello a grupos de dados.
+RF10
+Permitir associar listas do Trello a status gerenciais.
+RF11
+Permitir associar campos personalizados do Trello a campos tratados.
+RF12
+Permitir criar KPIs personalizados com contagem, percentual, filtros e agrupamentos.
+RF13
+Permitir criar gráficos a partir dos KPIs ou diretamente dos campos modelados.
+RF14
+Permitir escolher o tipo de gráfico de cada visual.
+RF15
+Permitir aplicar filtros globais ao dashboard.
+RF16
+Permitir aplicar filtros específicos por widget.
+RF17
+Permitir arrastar, redimensionar e reorganizar widgets.
+RF18
+Permitir salvar o layout localmente.
+RF19
+Permitir exportar PDF do painel.
+RF20
+Permitir exportar CSV dos dados filtrados.
+RF21
+Permitir exportar e importar a configuração completa do ambiente em JSON.
+RF22
+Permitir modo apresentação em tela cheia.
+RF23
+Permitir alternar entre tema claro, escuro e tema institucional configurável.
+8. Requisitos não funcionais
+A aplicação deverá funcionar localmente, sem necessidade de instalação de servidor.
+A aplicação deverá ser responsiva para desktop e notebooks; uso mobile não é prioridade na primeira versão.
+O código deverá ser modularizado em arquivos HTML, CSS e JavaScript separados.
+A interface deverá ser intuitiva e com aparência profissional/institucional.
+As configurações deverão persistir no navegador usando LocalStorage e/ou IndexedDB.
+A aplicação deverá permitir backup e restauração das configurações via arquivo JSON.
+A aplicação deverá tratar erros de conexão com o Trello de forma clara para o usuário.
+A aplicação deverá evitar travamentos com quadros grandes por meio de filtros, paginação em tabelas e renderização eficiente.
+A aplicação deverá funcionar preferencialmente nos navegadores Chrome, Edge e Firefox atualizados.
+9. Arquitetura técnica local
+A aplicação será uma SPA local, sem backend. A comunicação com o Trello ocorrerá diretamente do navegador. Os dados sincronizados e as configurações do usuário serão armazenados no próprio navegador.
+9.1. Estrutura sugerida de pastas
+/app
+  index.html
+  /css
+    styles.css
+    themes.css
+  /js
+    app.js
+    state.js
+    storage.js
+    trelloService.js
+    dataModeler.js
+    kpiEngine.js
+    chartRenderer.js
+    dashboardBuilder.js
+    exportService.js
+    utils.js
+  /lib
+    echarts.min.js
+    html2pdf.bundle.min.js
+    sortable-or-grid-library.min.js
+  /assets
+    logo.png
+    icons/
+9.2. Bibliotecas recomendadas
+Biblioteca
+Uso sugerido
+Apache ECharts ou Chart.js
+Renderização dos gráficos.
+html2pdf.js ou jsPDF + html2canvas
+Exportação de dashboards em PDF.
+SortableJS, GridStack.js ou Muuri
+Arrastar, soltar e reorganizar widgets.
+PapaParse
+Exportação/importação CSV, se necessário.
+Dexie.js
+Facilitar uso do IndexedDB para armazenamento local mais robusto.
+10. Armazenamento local
+Como a aplicação funcionará localmente, será necessário definir uma estratégia de persistência no navegador.
+Recurso
+Finalidade
+LocalStorage
+Configurações simples, tema, último ambiente aberto e preferências leves.
+IndexedDB
+Dados sincronizados do Trello, dashboards, widgets, modelagens e histórico local.
+Arquivo JSON
+Backup, transferência de configuração para outro computador e restauração.
+10.1. Modelo de configuração local
+{
+  "environment": {
+    "name": "Núcleo de Arquitetura e Urbanismo",
+    "acronym": "NAU",
+    "theme": { "primary": "#0f172a", "accent": "#38bdf8" }
+  },
+  "trelloConnection": {
+    "boardId": "...",
+    "saveTokenLocally": false,
+    "lastSyncAt": "2026-06-13T10:00:00"
+  },
+  "dataGroups": [
+    { "name": "Prioridade", "items": ["Urgente", "Alta", "Média"] },
+    { "name": "Unidade", "items": ["PRSM", "PSMECOL", "CDPG"] }
+  ],
+  "dashboards": [
+    { "name": "Painel Executivo", "widgets": [] }
+  ]
+}
+11. Segurança e limitações do funcionamento local
+Como não haverá backend, algumas limitações precisam ser tratadas com clareza na interface e na documentação do sistema.
+A API Key e o Token informados pelo usuário ficarão no navegador durante o uso da aplicação.
+Não se deve deixar API Key e Token fixos dentro do código-fonte HTML/JavaScript.
+O sistema deve oferecer a opção “não salvar token”, usando a credencial apenas durante a sessão.
+Se o usuário optar por salvar localmente, a aplicação deve exibir aviso de segurança.
+O armazenamento local do navegador não é equivalente à segurança de um backend com criptografia e controle de acesso.
+Em computadores compartilhados, recomenda-se não salvar token localmente.
+Deve existir botão para apagar credenciais salvas, limpar cache e excluir dados locais do ambiente.
+A aplicação local não terá controle multiusuário real na primeira versão.
+A aplicação local não terá sincronização automática entre computadores, salvo se o usuário exportar/importar o JSON de configuração.
+12. KPIs e gráficos mínimos da primeira versão
+Visual/KPI
+Descrição
+KPI Total de cartões
+Contar todos os cartões importados ou filtrados.
+KPI Concluídos
+Contar cartões cujo status modelado seja concluído.
+KPI Em andamento
+Contar cartões não concluídos.
+KPI Atrasados
+Contar cartões com vencimento menor que a data atual e status diferente de concluído.
+Demandas por lista/status
+Agrupar cartões por lista original ou status modelado.
+Demandas por responsável
+Agrupar por membro do Trello.
+Demandas por grupo de etiquetas
+Agrupar por grupos criados pelo usuário, como unidade, prioridade ou tipo.
+Fluxo mensal
+Agrupar por mês de criação e/ou conclusão.
+Tabela detalhada
+Exibir cartões filtráveis com nome, lista, responsáveis, etiquetas, prazo e link.
+13. Regras de criação de KPIs
+Todo KPI deve ter uma fonte: cartões, listas, membros, etiquetas, checklists ou campo personalizado.
+Todo KPI deve ter uma operação: contar, somar, calcular percentual, média, mínimo ou máximo.
+Todo KPI poderá ter filtros próprios.
+Todo KPI poderá ser usado em mais de um visual.
+Os KPIs deverão preferencialmente usar os campos modelados pelo usuário, e não nomes fixos do Trello.
+O usuário deverá poder duplicar um KPI para criar variações.
+14. Interface sugerida
+A interface deve ser dividida em áreas funcionais claras:
+Área
+Função
+Topo
+Nome do ambiente, botão sincronizar, botão exportar, botão modo apresentação, tema.
+Menu lateral
+Ambientes, conexão Trello, modelagem, KPIs, dashboards, exportações, configurações.
+Área central
+Visualização e edição do dashboard.
+Painel de propriedades
+Configurações do widget selecionado: título, dados, filtros, estilo, ordenação.
+Painel de campos
+Listas, etiquetas, membros, datas, campos personalizados e grupos modelados.
+15. Roadmap de desenvolvimento
+Fase
+Entregas
+Fase 1 — Base local funcional
+Criar estrutura HTML/CSS/JS, conexão com Trello, importação JSON, armazenamento local, dashboard padrão e tabela detalhada.
+Fase 2 — Modelagem do quadro
+Criar tela para associar listas, etiquetas e campos a grupos de dados configuráveis.
+Fase 3 — KPIs configuráveis
+Criar motor de KPIs com contagem, filtros, agrupamentos e percentuais.
+Fase 4 — Dashboard builder
+Permitir adicionar/remover widgets, escolher gráficos, arrastar, redimensionar e salvar layout.
+Fase 5 — Exportação e apresentação
+Melhorar PDF, CSV, JSON de backup e modo apresentação.
+Fase 6 — Melhorias avançadas
+Campos calculados, drill-down, templates por tipo de núcleo e alertas locais.
+16. Critérios de aceite da primeira versão
+A aplicação abre localmente no navegador sem backend.
+O usuário consegue informar API Key, Token e Board ID e sincronizar um quadro Trello.
+O usuário consegue importar um JSON do Trello sem usar API.
+A aplicação lista cartões, listas, etiquetas e membros encontrados.
+O usuário consegue criar grupos de dados e associar etiquetas/listas a esses grupos.
+O usuário consegue criar pelo menos cinco KPIs configuráveis.
+O usuário consegue criar gráficos com base nos grupos modelados.
+O usuário consegue montar um dashboard com cards, gráficos e tabela.
+O layout do dashboard fica salvo localmente.
+O usuário consegue exportar o dashboard em PDF.
+O usuário consegue exportar/importar a configuração do ambiente em JSON.
+A aplicação não depende do padrão específico do dashboard NAU para funcionar.
+17. Observação final ao programador
+O objetivo principal não é criar um dashboard fixo, mas uma ferramenta local para criação de dashboards a partir do Trello. O dashboard NAU existente serve como inspiração de layout, gráficos e indicadores, porém a nova aplicação deve ser genérica, flexível e baseada em modelagem feita pelo próprio usuário. A regra de ouro do desenvolvimento é: importar os dados brutos do Trello, permitir que o usuário modele esses dados e só depois gerar KPIs e visualizações.

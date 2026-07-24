@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DashBuilder - Local BI para Trello</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/themes.css">
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- External Libraries -->
+    <script src="https://unpkg.com/dexie@3.2.4/dist/dexie.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+</head>
+<body class="theme-light">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>DashBuilder</h2>
+            <span class="badge">PRO LOCAL</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-view="home">
+                <span>📁</span> <span>Início / Ambientes</span>
+            </a>
+            <a href="#" class="nav-item" data-view="trello">
+                <span>🔌</span> <span>Conexão Trello</span>
+            </a>
+            <a href="#" class="nav-item" data-view="modeler">
+                <span>🧩</span> <span>Modelagem de Dados</span>
+            </a>
+            <a href="#" class="nav-item" data-view="kpi">
+                <span>🎯</span> <span>Criar KPIs</span>
+            </a>
+            <a href="#" class="nav-item" data-view="dashboard">
+                <span>📊</span> <span>Dashboard Builder</span>
+            </a>
+            <a href="#" class="nav-item" data-view="config">
+                <span>⚙️</span> <span>Exportar & Backup</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Topbar -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <h1 id="topbar-title">Início / Ambientes</h1>
+                <span id="topbar-env" class="env-name">Sem ambiente selecionado</span>
+            </div>
+            <div class="topbar-right">
+                <button id="btn-sync" class="btn btn-outline" disabled>🔄 Sincronizar Trello</button>
+                <button id="btn-presentation" class="btn btn-outline" disabled>📺 Apresentação</button>
+                <button id="btn-theme-toggle" class="btn btn-icon" title="Alternar Tema Claro/Escuro">🌙</button>
+            </div>
+        </header>
+
+        <!-- View Container -->
+        <div class="view-container" id="view-container">
+            
+            <!-- Home View -->
+            <div id="view-home" class="view active">
+                <div class="card">
+                    <h2>Bem-vindo ao DashBuilder PRO</h2>
+                    <p>Selecione um ambiente existente ou crie um novo para importar e modelar dados do Trello localmente.</p>
+                    <div class="mt-2" style="display:flex; gap:0.5rem">
+                        <button class="btn btn-primary" id="btn-new-env">+ Criar Novo Ambiente</button>
+                        <button class="btn btn-secondary" id="btn-import-env-json">📥 Importar JSON do Ambiente</button>
+                    </div>
+                </div>
+                <div class="env-list mt-3" id="env-list">
+                    <!-- Ambientes serão renderizados via JS -->
+                </div>
+            </div>
+
+            <!-- Trello Connection View -->
+            <div id="view-trello" class="view">
+                <div class="card">
+                    <h2>Conexão com Trello</h2>
+                    <p>Insira suas credenciais do Trello ou importe um arquivo JSON exportado diretamente do quadro.</p>
+                    
+                    <div class="mt-2" style="display: flex; flex-direction: column; gap: 1rem; max-width: 600px;">
+                        <div>
+                            <label style="font-size:0.8rem; font-weight:600;">API Key</label>
+                            <input type="text" id="trello-api-key" placeholder="Sua API Key do Trello" style="width: 100%; margin-top:0.25rem;">
+                        </div>
+                        <div>
+                            <label style="font-size:0.8rem; font-weight:600;">Token de Acesso</label>
+                            <input type="password" id="trello-token" placeholder="Seu Token do Trello" style="width: 100%; margin-top:0.25rem;">
+                        </div>
+                        <div>
+                            <label style="font-size:0.8rem; font-weight:600;">Board ID (ou link curto)</label>
+                            <input type="text" id="trello-board-id" placeholder="ID do Quadro (ex: shortLink ou ID completo)" style="width: 100%; margin-top:0.25rem;">
+                        </div>
+                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                            <input type="checkbox" id="trello-save-token" style="width:auto;">
+                            <label for="trello-save-token" style="font-size:0.85rem;">Salvar credenciais localmente neste computador</label>
+                        </div>
+                        
+                        <div class="actions mt-1">
+                            <button class="btn btn-primary" id="btn-trello-connect">🔄 Conectar e Sincronizar via API</button>
+                        </div>
+                    </div>
+
+                    <hr class="mt-3" style="border: 0; border-top: 1px solid var(--border-color);">
+                    
+                    <div class="mt-3">
+                        <h3>Importação Offline por Arquivo JSON</h3>
+                        <p>Se preferir não conectar via API, exporte seu quadro no Trello no formato JSON e importe aqui.</p>
+                        <div style="display:flex; gap:0.5rem; margin-top:0.5rem; align-items:center;">
+                            <input type="file" id="trello-json-file" accept=".json">
+                            <button class="btn btn-secondary" id="btn-trello-import-file">Processar Arquivo JSON</button>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <h3>Status dos Dados em Memória Local</h3>
+                        <div id="trello-sync-status" class="mt-1 p-2" style="background: var(--bg-main); border-radius: var(--radius-md); padding: 1rem;">
+                            Nenhum dado sincronizado ainda.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modeler View -->
+            <div id="view-modeler" class="view">
+                <div class="card mb-2">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+                        <div>
+                            <h2>Modelagem de Dados & Explorador Semântico</h2>
+                            <p>Inspecione os cartões reais do Trello, mapeie etiquetas e colunas e veja a transformação De-Para em tempo real.</p>
+                        </div>
+                        <div style="display:flex; gap:0.5rem;">
+                            <button class="btn btn-secondary" id="btn-auto-map">⚡ Mapeamento Automático Inteligente</button>
+                            <button class="btn btn-primary" id="btn-add-group">+ Novo Agrupamento</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Abas da Modelagem -->
+                <div style="display:flex; gap:0.5rem; border-bottom:1px solid var(--border-color); margin-bottom:1.25rem;">
+                    <button class="btn btn-outline modeler-tab active" data-tab="depara" style="border-bottom-left-radius:0; border-bottom-right-radius:0; font-weight:600;">
+                        🔄 Mapeador & Live Preview (De-Para)
+                    </button>
+                    <button class="btn btn-outline modeler-tab" data-tab="inspector" style="border-bottom-left-radius:0; border-bottom-right-radius:0; font-weight:600;">
+                        🔍 Inspector de Cartões (Dados Brutos)
+                    </button>
+                    <button class="btn btn-outline modeler-tab" data-tab="dictionary" style="border-bottom-left-radius:0; border-bottom-right-radius:0; font-weight:600;">
+                        📊 Dicionário & Saúde dos Dados
+                    </button>
+                </div>
+
+                <!-- Conteúdo Aba 1: De-Para & Mapeador -->
+                <div id="modeler-tab-depara" class="tab-content active">
+                    <div id="modeler-groups" style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+                        <!-- Grupos serão renderizados via JS -->
+                    </div>
+
+                    <div class="card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                            <div>
+                                <h3>Transformação em Tempo Real (De-Para)</h3>
+                                <p style="font-size:0.8rem; color:var(--text-muted);">Veja como cada cartão do Trello é transformado pelas suas regras de agrupamento antes de ir para o BI.</p>
+                            </div>
+                            <input type="text" id="depara-search" placeholder="Filtrar cartão no preview..." style="padding:0.4rem 0.75rem; font-size:0.8rem; width:220px;">
+                        </div>
+                        <div class="data-table-container" style="max-height: 400px; overflow-y: auto;">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nome do Cartão (Trello)</th>
+                                        <th>Dado Bruto Original</th>
+                                        <th>Agrupamento Semântico</th>
+                                        <th>Categoria Resultante (BI)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="depara-preview-tbody">
+                                    <!-- Preenchido via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Conteúdo Aba 2: Card Inspector -->
+                <div id="modeler-tab-inspector" class="tab-content" style="display:none;">
+                    <div class="card mb-2">
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap;">
+                            <div>
+                                <h3>Explorador Amostral de Cartões</h3>
+                                <p style="font-size:0.8rem; color:var(--text-muted);">Inspecione todos os atributos brutos, etiquetas e campos preenchidos diretamente nos cartões do Trello.</p>
+                            </div>
+                            <input type="text" id="inspector-search" placeholder="Pesquisar cartão ou etiqueta..." style="padding:0.4rem 0.75rem; font-size:0.8rem; width:250px;">
+                        </div>
+                    </div>
+
+                    <div class="data-table-container" style="max-height: 520px; overflow-y: auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Nome do Cartão</th>
+                                    <th>Coluna (List)</th>
+                                    <th>Etiquetas Aplicadas</th>
+                                    <th>Membro Responsável</th>
+                                    <th>Criado Em</th>
+                                    <th>Campos Customizados Brutos</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inspector-tbody">
+                                <!-- Preenchido via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Conteúdo Aba 3: Dicionário & Saúde -->
+                <div id="modeler-tab-dictionary" class="tab-content" style="display:none;">
+                    <div style="display:flex; gap:1.25rem; flex-wrap:wrap;">
+                        <!-- Card de Saúde da Modelagem -->
+                        <div class="card" style="flex:1; min-width:300px;">
+                            <h3>❤️ Saúde da Modelagem & Cobertura</h3>
+                            <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem;">Percentual de cartões que possuem categorização mapeada vs. não categorizados.</p>
+                            <div id="data-health-stats">
+                                <!-- Preenchido via JS -->
+                            </div>
+                        </div>
+
+                        <!-- Card de Dicionário de Frequência -->
+                        <div class="card" style="flex:2; min-width:320px;">
+                            <h3>📚 Frequência de Uso de Etiquetas e Colunas</h3>
+                            <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem;">Distribuição de densidade dos cartões entre as etiquetas e listas nativas do Trello.</p>
+                            <div style="display:flex; gap:1.5rem; flex-wrap:wrap;">
+                                <div style="flex:1; min-width:200px;">
+                                    <h4 style="font-size:0.85rem; margin-bottom:0.5rem; color:var(--primary);">Frequência por Coluna</h4>
+                                    <ul id="dict-lists-freq" style="list-style:none; padding:0; font-size:0.85rem;"></ul>
+                                </div>
+                                <div style="flex:1; min-width:200px;">
+                                    <h4 style="font-size:0.85rem; margin-bottom:0.5rem; color:var(--primary);">Frequência por Etiqueta</h4>
+                                    <ul id="dict-labels-freq" style="list-style:none; padding:0; font-size:0.85rem;"></ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI View -->
+            <div id="view-kpi" class="view">
+                <div class="card">
+                    <h2>Criar e Gerenciar KPIs</h2>
+                    <p>Defina regras de filtragem para aplicar em métricas e indicadores do seu dashboard.</p>
+                    <div class="actions mt-2">
+                        <button class="btn btn-primary" id="btn-add-kpi">+ Novo KPI / Filtro Base</button>
+                    </div>
+                </div>
+                <div class="mt-3" style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
+                    <!-- Lista Lateral de KPIs -->
+                    <div class="card" style="width: 300px; padding: 1.25rem;">
+                        <h3>Meus KPIs Salvos</h3>
+                        <ul id="kpi-list" style="list-style: none; padding: 0; margin-top: 1rem;">
+                            <!-- KPIs salvos renderizados aqui -->
+                        </ul>
+                    </div>
+                    
+                    <!-- Editor Principal de KPI -->
+                    <div class="card" id="kpi-editor" style="flex: 1; min-width: 320px; display: none;">
+                        <h3>Editor de KPI / Filtro</h3>
+                        <div class="mt-2">
+                            <label style="font-size:0.8rem; font-weight:600;">Nome do Indicador</label>
+                            <input type="text" id="kpi-name" style="width: 100%; margin-top: 0.25rem;" placeholder="Ex: Cartões Concluídos em Dia">
+                        </div>
+                        <div class="mt-2">
+                            <label style="font-size:0.8rem; font-weight:600;">Operação de Referência</label>
+                            <select id="kpi-operation" style="width: 100%; margin-top: 0.25rem;">
+                                <option value="count">Contagem (Total de Cartões)</option>
+                                <option value="sum">Somatório de Campos Numéricos</option>
+                                <option value="avg">Média de Campos Numéricos</option>
+                            </select>
+                        </div>
+                        <div class="mt-2">
+                            <label style="font-size:0.8rem; font-weight:600;">Regras de Filtragem</label>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom:0.5rem;">Adicione condições para filtrar quais cartões entram no cálculo deste KPI.</p>
+                            <div id="kpi-filters-container" style="background: var(--bg-main); padding: 1rem; border-radius: var(--radius-sm);">
+                                <!-- Filtros renderizados via JS -->
+                            </div>
+                            <button class="btn btn-secondary mt-2" id="btn-add-kpi-filter">+ Adicionar Filtro</button>
+                        </div>
+                        <div class="actions mt-3" style="display:flex; gap:0.5rem; justify-content:flex-end;">
+                            <button class="btn btn-outline" id="btn-cancel-kpi">Cancelar</button>
+                            <button class="btn btn-primary" id="btn-save-kpi">Salvar Indicador</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard View -->
+            <div id="view-dashboard" class="view">
+                <div class="card mb-2">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+                        <div>
+                            <h2>Dashboard Builder</h2>
+                            <p>Painel de controle visual com suporte a Drill-Down (clique nos gráficos para ver as tarefas detalhadas).</p>
+                        </div>
+                        <div style="display:flex; gap:0.5rem;">
+                            <button class="btn btn-secondary" id="btn-auto-dash">🚀 Gerar Dashboard Automático</button>
+                            <button class="btn btn-primary" id="btn-open-widget-modal">+ Adicionar Widget</button>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Global Filter Bar -->
+                <div class="global-filter-bar mb-3" id="global-filter-bar">
+                    <!-- Renderizado dinamicamente via DashboardBuilder.js -->
+                </div>
+                
+                <div id="dash-grid" style="display: flex; flex-wrap: wrap; gap: 1.25rem; min-height: 250px;">
+                    <!-- Widgets renderizados via JS -->
+                </div>
+            </div>
+
+            <!-- Config View -->
+            <div id="view-config" class="view">
+                <!-- Renderizado via ExportService.js -->
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Application Scripts -->
+    <script src="js/utils.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/trelloService.js"></script>
+    <script src="js/dataModeler.js"></script>
+    <script src="js/kpiEngine.js"></script>
+    <script src="js/chartRenderer.js"></script>
+    <script src="js/dashboardBuilder.js"></script>
+    <script src="js/exportService.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
+
